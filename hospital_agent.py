@@ -8,7 +8,7 @@ GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "YOUR_GOOGLE_MAPS_AP
 # Fixed location: New York City (Times Square)
 DEFAULT_LAT = 40.7580
 DEFAULT_LNG = -73.9855
-DEFAULT_RADIUS = 5000  # meters
+DEFAULT_RADIUS = 10000  # meters (10km)
 
 
 def get_department(symptoms: str) -> str:
@@ -46,6 +46,11 @@ def fetch_hospitals(lat: float = DEFAULT_LAT, lng: float = DEFAULT_LNG, radius: 
     response = requests.get(url, params=params, timeout=10)
     response.raise_for_status()
     data = response.json()
+
+    status = data.get("status", "UNKNOWN")
+    if status not in ("OK", "ZERO_RESULTS"):
+        error_msg = data.get("error_message", "Unknown error")
+        raise RuntimeError(f"Google Maps API error [{status}]: {error_msg}")
 
     hospitals = []
     for place in data.get("results", []):
