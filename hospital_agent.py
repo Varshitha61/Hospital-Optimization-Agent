@@ -14,9 +14,23 @@ DEFAULT_RADIUS = 5000  # meters
 def get_department(symptoms: str) -> str:
     """Map symptoms string to a hospital department."""
     symptoms_lower = symptoms.lower()
-    bone_keywords = ["bone", "fracture", "broken", "orthopedic", "joint", "spine"]
-    if any(kw in symptoms_lower for kw in bone_keywords):
-        return "orthopedic"
+
+    department_map = {
+        "orthopedic": ["bone", "fracture", "broken", "orthopedic", "joint", "spine", "back pain", "shoulder", "knee", "hip"],
+        "cardiology": ["heart", "chest pain", "palpitation", "cardiac", "blood pressure", "hypertension", "shortness of breath"],
+        "neurology": ["headache", "migraine", "seizure", "stroke", "numbness", "dizziness", "brain", "nerve"],
+        "urology": ["kidney", "kidney stone", "urine", "urinary", "bladder", "prostate", "burning urination"],
+        "gastroenterology": ["stomach", "abdomen", "nausea", "vomiting", "diarrhea", "constipation", "liver", "ulcer"],
+        "pulmonology": ["cough", "breathing", "lung", "asthma", "pneumonia", "respiratory"],
+        "dermatology": ["skin", "rash", "itch", "acne", "allergy", "hives"],
+        "ent": ["ear", "nose", "throat", "sore throat", "hearing", "sinus", "cold", "congestion"],
+        "general": ["fever", "fatigue", "weakness", "pain", "cold", "flu", "infection"],
+    }
+
+    for department, keywords in department_map.items():
+        if any(kw in symptoms_lower for kw in keywords):
+            return department
+
     return "general"
 
 
