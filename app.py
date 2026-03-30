@@ -19,7 +19,7 @@ if location is None:
 lat = location["coords"]["latitude"]
 lng = location["coords"]["longitude"]
 
-st.caption(f"📍 Using your current location")
+st.caption("📍 Using your current location")
 
 with st.form("symptom_form"):
     symptoms = st.text_input(
@@ -33,31 +33,24 @@ if submitted:
         st.warning("Please enter your symptoms.")
     else:
         with st.spinner("Fetching nearby hospitals and estimating wait times..."):
-            try:
-                result = main(symptoms.strip(), lat, lng)
-            except Exception as e:
-                st.error(f"Error fetching hospitals: {e}")
-                st.stop()
+            result = main(symptoms.strip(), lat, lng)
 
-        if result["wait_time"] is None:
-            st.warning("No hospitals found within 10km of your location. Try again or move to a different area.")
-        else:
-            st.success("Recommendation ready!")
+        st.success("Recommendation ready!")
 
-            col1, col2, col3 = st.columns(3)
-            col1.metric("🏥 Hospital", result["hospital"])
-            col2.metric("🩺 Department", result["department"].capitalize())
-            col3.metric("⏱ Wait Time", f"{result['wait_time']} min")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("🏥 Hospital", result["hospital"])
+        col2.metric("🩺 Department", result["department"].capitalize())
+        col3.metric("⏱ Wait Time", f"{result['wait_time']} min")
 
-            st.info(f"**Why this hospital?** {result['reason']}")
+        st.info(f"**Why this hospital?** {result['reason']}")
 
-            if result.get("all_hospitals"):
-                with st.expander("📊 All nearby hospitals (sorted by wait time)"):
-                    sorted_hospitals = sorted(result["all_hospitals"], key=lambda h: h["wait_time"])
-                    for h in sorted_hospitals:
-                        rating = f"⭐ {h['rating']}" if h.get("rating") else "No rating"
-                        st.write(
-                            f"**{h['name']}** — {rating} | "
-                            f"~{h['patients']} patients, {h['doctors']} doctors → "
-                            f"**{h['wait_time']} min wait**"
-                        )
+        if result.get("all_hospitals"):
+            with st.expander("📊 All nearby hospitals (sorted by wait time)"):
+                sorted_hospitals = sorted(result["all_hospitals"], key=lambda h: h["wait_time"])
+                for h in sorted_hospitals:
+                    rating = f"⭐ {h['rating']}" if h.get("rating") else ""
+                    st.write(
+                        f"**{h['name']}** {rating} — "
+                        f"~{h['patients']} patients, {h['doctors']} doctors → "
+                        f"**{h['wait_time']} min wait**"
+                    )
