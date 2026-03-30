@@ -1,0 +1,21 @@
+kind = "web"
+previewPath = "/"
+title = "Hospital Queue Agent"
+version = "1.0.0"
+id = "artifacts/hospital-agent"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20701
+
+[services.development]
+run = "streamlit run /home/runner/workspace/app.py --server.port $PORT --server.headless true --server.address 0.0.0.0"
+
+[services.env]
+PORT = "20701"
