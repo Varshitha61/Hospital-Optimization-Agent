@@ -36,15 +36,11 @@ if submitted:
             try:
                 result = main(symptoms.strip(), lat, lng)
             except Exception as e:
-                st.error(f"Error contacting Google Maps API: {e}")
+                st.error(f"Error fetching hospitals: {e}")
                 st.stop()
 
         if result["wait_time"] is None:
-            st.error(
-                "No hospitals found near your location. "
-                "Please ensure your Google Maps Places API key has the **Places API** enabled, "
-                "or try again in a different area."
-            )
+            st.warning("No hospitals found within 10km of your location. Try again or move to a different area.")
         else:
             st.success("Recommendation ready!")
 

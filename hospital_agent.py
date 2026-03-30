@@ -3,12 +3,11 @@ import random
 import requests
 
 
-GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "YOUR_GOOGLE_MAPS_API_KEY")
-
-# Fixed location: New York City (Times Square)
 DEFAULT_LAT = 40.7580
 DEFAULT_LNG = -73.9855
 DEFAULT_RADIUS = 10000  # meters (10km)
+
+OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
 
 def get_department(symptoms: str) -> str:
@@ -35,30 +34,33 @@ def get_department(symptoms: str) -> str:
 
 
 def fetch_hospitals(lat: float = DEFAULT_LAT, lng: float = DEFAULT_LNG, radius: int = DEFAULT_RADIUS) -> list[dict]:
-    """Fetch nearby hospitals using the Google Maps Places API (nearbysearch)."""
-    url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-    params = {
-        "location": f"{lat},{lng}",
-        "radius": radius,
-        "type": "hospital",
-        "key": GOOGLE_MAPS_API_KEY,
-    }
-    response = requests.get(url, params=params, timeout=10)
+    """Fetch nearby hospitals using the OpenStreetMap Overpass API (free, no key needed)."""
+    query = f"""
+    [out:json][timeout:15];
+    (
+      node["amenity"="hospital"](around:{radius},{lat},{lng});
+      way["amenity"="hospital"](around:{radius},{lat},{lng});
+      relation["amenity"="hospital"](around:{radius},{lat},{lng});
+    );
+    out center;
+    """
+    response = requests.post(OVERPASS_URL, data={"data": query}, timeout=20)
     response.raise_for_status()
     data = response.json()
 
-    status = data.get("status", "UNKNOWN")
-    if status not in ("OK", "ZERO_RESULTS"):
-        error_msg = data.get("error_message", "Unknown error")
-        raise RuntimeError(f"Google Maps API error [{status}]: {error_msg}")
-
     hospitals = []
-    for place in data.get("results", []):
+    seen = set()
+    for element in data.get("elements", []):
+        tags = element.get("tags", {})
+        name = tags.get("name") or tags.get("name:en")
+        if not name or name in seen:
+            continue
+        seen.add(name)
         hospitals.append({
-            "name": place.get("name", "Unknown Hospital"),
-            "rating": place.get("rating", None),
-            "place_id": place.get("place_id", ""),
+            "name": name,
+            "rating": None,
         })
+
     return hospitals
 
 
@@ -83,8 +85,6 @@ def select_best_hospital(hospitals_with_wait: list[dict]) -> dict:
 def main(symptoms: str, lat: float = DEFAULT_LAT, lng: float = DEFAULT_LNG) -> dict:
     """
     Main agent function: given symptoms and a location, recommend the best nearby hospital.
-
-    Returns a structured result dict.
     """
     department = get_department(symptoms)
     hospitals = fetch_hospitals(lat, lng)
@@ -94,15 +94,14 @@ def main(symptoms: str, lat: float = DEFAULT_LAT, lng: float = DEFAULT_LNG) -> d
             "hospital": "No hospitals found",
             "department": department,
             "wait_time": None,
-            "reason": "The Google Maps API returned no hospitals near the given location.",
+            "reason": "No hospitals were found within 10km of your location.",
         }
 
     hospitals_with_wait = [estimate_wait(h) for h in hospitals]
     best = select_best_hospital(hospitals_with_wait)
 
-    rating_note = f" (rated {best['rating']}/5)" if best.get("rating") else ""
     reason = (
-        f"{best['name']}{rating_note} has the shortest estimated wait of {best['wait_time']} minutes "
+        f"{best['name']} has the shortest estimated wait of {best['wait_time']} minutes "
         f"based on ~{best['patients']} patients and {best['doctors']} doctors on duty. "
         f"Directed to the {department} department."
     )
