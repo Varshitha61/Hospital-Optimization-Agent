@@ -1,5 +1,26 @@
 # Workspace
 
+## Hospital Queue Optimization Agent
+
+A Python-based hackathon prototype that recommends the best nearby hospital based on shortest estimated wait time.
+
+### Files
+- `hospital_agent.py` — Core logic: `get_department()`, `fetch_hospitals()`, `estimate_wait()`, `select_best_hospital()`, `main()`
+- `app.py` — Streamlit web UI
+- `.streamlit/config.toml` — Streamlit server config (port 5000)
+
+### Workflow
+- **Hospital Queue Agent** — `streamlit run app.py --server.port 5000`
+
+### Environment Variables Required
+- `GOOGLE_MAPS_API_KEY` — Google Maps Places API key (nearbysearch endpoint)
+
+### Usage
+- CLI: `python hospital_agent.py`
+- Web: Streamlit app at port 5000
+
+
+
 ## Overview
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
