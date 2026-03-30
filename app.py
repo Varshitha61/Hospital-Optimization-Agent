@@ -4,7 +4,7 @@ from hospital_agent import main
 
 st.set_page_config(page_title="Hospital Queue Agent", page_icon="🏥", layout="centered")
 
-st.title("🏥 Hospital Queue Optimization Agent")
+st.title("Hospital Queue Optimization Agent")
 st.caption("Find the nearest hospital with the shortest estimated wait time.")
 
 st.divider()
@@ -13,13 +13,13 @@ st.divider()
 location = get_geolocation()
 
 if location is None:
-    st.info("📍 Requesting your location... Please allow location access when prompted by your browser.")
+    st.info("Requesting your location... Please allow location access when prompted by your browser.")
     st.stop()
 
 lat = location["coords"]["latitude"]
 lng = location["coords"]["longitude"]
 
-st.caption("📍 Using your current location")
+st.caption("Using your current location")
 
 with st.form("symptom_form"):
     symptoms = st.text_input(

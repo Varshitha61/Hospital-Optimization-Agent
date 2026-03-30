@@ -1,7 +1,7 @@
 [project]
-name = "repl-nix-workspace"
+name = "hospital-quick-find"
 version = "0.1.0"
-description = "Add your description here"
+description = "A Streamlit app to quickly find hospitals"
 requires-python = ">=3.11"
 dependencies = [
     "requests>=2.33.0",
