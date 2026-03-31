@@ -1,5 +1,8 @@
 /app.py
 /main.py
 /hospital_agent.py
-.venv
+/venv
+/remote.txt
+/status.txt
 __pycache__
+*.pyc
