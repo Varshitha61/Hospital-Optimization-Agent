@@ -1,3 +1,0 @@
-requests>=2.33.0
-streamlit>=1.55.0
-streamlit-js-eval>=1.0.0
