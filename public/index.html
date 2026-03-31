@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Queue Optimization Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-grad-1: #0f172a;
+            --bg-grad-2: #1e1b4b;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --accent: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2));
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .status-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .status-box.loading {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .status-box.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(to right, var(--primary), #8b5cf6);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-container {
+            display: none;
+            margin-top: 2rem;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-card p {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .result-reason {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .expand-button {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            box-shadow: none;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            padding: 0.75rem;
+        }
+
+        .expand-button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .all-hospitals {
+            display: none;
+            margin-top: 1rem;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 0.5rem;
+        }
+
+        .hospital-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .hospital-item:last-child {
+            border-bottom: none;
+        }
+
+        .hospital-item span {
+            color: white;
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Hospital Queue Agent 🏥</h1>
+        <p class="subtitle">Find the nearest hospital with the shortest estimated wait time.</p>
+
+        <div id="location-status" class="status-box loading">
+            <div class="spinner"></div> Requesting location access...
+        </div>
+
+        <div class="form-group">
+            <label for="symptoms">Describe your symptoms</label>
+            <input type="text" id="symptoms" placeholder="e.g. I have a fever, kidney stone, chest pain" />
+        </div>
+
+        <button id="submit-btn" disabled>Find Best Hospital</button>
+
+        <div id="result-container" class="result-container">
+            <div class="status-box" style="margin-bottom: 1.5rem;">🎉 Recommendation ready!</div>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>🏥 Hospital</h3>
+                    <p id="res-hospital">-</p>
+                </div>
+                <div class="metric-card">
+                    <h3>🩺 Department</h3>
+                    <p id="res-department">-</p>
+                </div>
+                <div class="metric-card">
+                    <h3>⏱ Wait</h3>
+                    <p id="res-wait">-</p>
+                </div>
+            </div>
+
+            <div class="result-reason">
+                <strong>Why this hospital?</strong> <span id="res-reason"></span>
+            </div>
+
+            <button class="expand-button" onclick="toggleAllHospitals()">📊 View All Nearby Hospitals</button>
+            <div id="all-hospitals" class="all-hospitals">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userLat = null;
+        let userLng = null;
+
+        const statusBox = document.getElementById('location-status');
+        const submitBtn = document.getElementById('submit-btn');
+        const symptomsInput = document.getElementById('symptoms');
+        const resultContainer = document.getElementById('result-container');
+
+        // Request Geolocation
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLat = position.coords.latitude;
+                    userLng = position.coords.longitude;
+                    statusBox.className = "status-box";
+                    statusBox.innerHTML = "📍 Using your current location";
+                    submitBtn.disabled = false;
+                },
+                (error) => {
+                    statusBox.className = "status-box error";
+                    statusBox.innerHTML = "❌ Location access denied. Using default location (NYC).";
+                    // Fallback to defaults
+                    userLat = 40.7580;
+                    userLng = -73.9855;
+                    submitBtn.disabled = false;
+                }
+            );
+        } else {
+            statusBox.className = "status-box error";
+            statusBox.innerHTML = "❌ Geolocation not supported by browser.";
+        }
+
+        // Handle Submit
+        submitBtn.addEventListener('click', async () => {
+            const symptoms = symptomsInput.value.trim();
+            if (!symptoms) {
+                alert("Please enter your symptoms.");
+                return;
+            }
+
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = "<div class='spinner'></div> Fetching estimates...";
+            submitBtn.disabled = true;
+            resultContainer.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symptoms, lat: userLat, lng: userLng })
+                });
+
+                if (!response.ok) throw new Error("API failed");
+
+                const data = await response.json();
+                
+                // Populate Results
+                document.getElementById('res-hospital').innerText = data.hospital;
+                document.getElementById('res-department').innerText = data.department.charAt(0).toUpperCase() + data.department.slice(1);
+                document.getElementById('res-wait').innerText = data.wait_time + " min";
+                document.getElementById('res-reason').innerText = data.reason;
+
+                // Populate All Hospitals
+                const list = document.getElementById('all-hospitals');
+                list.innerHTML = "";
+                const sorted = data.all_hospitals.sort((a,b) => a.wait_time - b.wait_time);
+                sorted.forEach(h => {
+                    const item = document.createElement('div');
+                    item.className = 'hospital-item';
+                    item.innerHTML = `<span>${h.name}</span> — ~${h.patients} patients, ${h.doctors} doctors → <span>${h.wait_time} min wait</span>`;
+                    list.appendChild(item);
+                });
+
+                resultContainer.style.display = 'block';
+            } catch (err) {
+                alert("Sorry, an error occurred while fetching hospital data.");
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Toggle visibility
+        function toggleAllHospitals() {
+            const list = document.getElementById('all-hospitals');
+            list.style.display = list.style.display === 'block' ? 'none' : 'block';
+        }
+    </script>
+</body>
+</html>
