@@ -1,4 +1,9 @@
+import sys
 import os
+
+# Ensure the api/ directory is on the path so hospital_agent can be imported
+sys.path.insert(0, os.path.dirname(__file__))
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
